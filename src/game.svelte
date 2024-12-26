@@ -1,4 +1,7 @@
 <script lang="ts">
+  import PreloadScene from './scenes/preload.ts'
+  import GameScene from './scenes/game.ts'
+  import Snake from './scenes/snake.ts'
   import Phaser from "phaser";
   import { onMount } from "svelte";
 
@@ -6,80 +9,56 @@
 
   // Creating canvas for game
   const config: Phaser.Types.Core.GameConfig = {
-    type: Phaser.CANVAS,
+    type: Phaser.AUTO,
     width: 800,
     height: 600,
-    backgroundColor: "#87ceeb",
     physics: {
-      default: "arcade",
-      arcade: {
-        gravity: { y: 30 },
-      },
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 300 },
+            debug: false
+        }
     },
     scene: {
-      preload,
-      create,
-      update,
-    },
-  };
-
-  let player: Phaser.Physics.Arcade.Sprite;
-  let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-  let stars: Phaser.Physics.Arcade.Group;
-
-  // Loading all assets for game
-  function preload(this: Phaser.Scene): void {
-    this.load.setBaseURL("https://labs.phaser.io");
-    this.load.image("sky", "assets/skies/space3.png");
-    this.load.image("star", "assets/demoscene/star.png");
-    this.load.image("platform", "assets/sprites/platform.png");
-  }
-
-  //
-  function create(this: Phaser.Scene): void {
-    this.add.image(400, 300, "sky");
-
-    const platforms = this.physics.add.staticGroup();
-    platforms.create(400, 590, "platform").setScale(2).refreshBody();
-
-    player = this.physics.add.sprite(400, 500, "star");
-    player.setBounce(0.2);
-    player.setCollideWorldBounds(true);
-    this.physics.add.collider(player, platforms);
-
-    cursors = this.input.keyboard.createCursorKeys();
-
-    stars = this.physics.add.group({
-      key: "star",
-      repeat: 5,
-      setXY: { x: 12, y: 0, stepX: 150 },
-    });
-
-    stars.children.iterate((child) => {
-      const star = child as Phaser.Physics.Arcade.Sprite;
-      star.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-    });
-
-    this.physics.add.collider(stars, platforms);
-    this.physics.add.overlap(player, stars, collectStar, undefined, this);
-  }
-
-  function update(this: Phaser.Scene): void {
-    if (cursors.left?.isDown) {
-      player.setVelocityX(-160);
-    } else if (cursors.right?.isDown) {
-      player.setVelocityX(160);
-    } else {
-      player.setVelocityX(0);
+        preload: preload,
+        create: create,
+        update: update
     }
-  }
+};
 
-  function collectStar(
-    player: Phaser.GameObjects.GameObject,
-    star: Phaser.GameObjects.GameObject
-  ): void {
-    (star as Phaser.Physics.Arcade.Sprite).disableBody(true, true);
-  }
+function preload (): void
+{
+    this.load.image('sky', 'assets/sky.png');
+    this.load.image('ground', 'assets/platform.png');
+    this.load.image('star', 'assets/star.png');
+    this.load.image('bomb', 'assets/bomb.png');
+    this.load.spritesheet('dude',
+        'assets/dude.png',
+        { frameWidth: 32, frameHeight: 48 }
+    );
+}
+
+let platforms;
+
+function create(): void
+{
+  this.add.image(400, 300, 'sky');
+  this.add.image(400, 300, 'star');
+
+  platforms = this.physics.add.staticGroup();
+
+platforms.create(400, 568, 'ground').setScale(2).refreshBody();
+
+platforms.create(600, 400, 'ground');
+platforms.create(50, 250, 'ground');
+platforms.create(750, 220, 'ground');
+}
+
+function update(): void
+{
+
+}
+
 
   onMount(() => {
     game = new Phaser.Game({ ...config, parent: "phaser-container" });
